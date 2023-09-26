@@ -45,6 +45,17 @@ def get_bottle_plan():
     amount = 0
     if row[0] >= 100:
         amount = row[0] % 100
+        ml = row[0] - (amount * 100)
+
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text("SELECT \"num_red_potions\" FROM global_inventory"))
+            for row in result:
+                print(row[0])
+
+        potions = row[0] + amount
+
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text("UPDATE global_inventory SET \"num_red_ml\" = {ml}, \"num_red_potions\" = {potions}"))
 
     return [
             {
