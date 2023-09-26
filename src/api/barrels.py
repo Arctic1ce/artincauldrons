@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from src.api import auth
 
-import sqlalchemy
-from src import database as db
+# import sqlalchemy
+# from src import database as db
 
-with db.engine.begin() as connection:
-        result = connection.execute("")
+# with db.engine.begin() as connection:
+#         result = connection.execute("")
 
 router = APIRouter(
     prefix="/barrels",
