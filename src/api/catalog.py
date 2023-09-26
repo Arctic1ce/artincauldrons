@@ -16,14 +16,14 @@ def get_catalog():
 
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT \"num_red_potions\" FROM global_inventory"))
-        # for row in result:
-        #     print(row[0])
+        for row in result:
+            print(row[0])
 
     return [
             {
                 "sku": "RED_POTION_0",
                 "name": "red potion",
-                "quantity": result[0][0],
+                "quantity": row[0],
                 "price": 50,
                 "potion_type": [100, 0, 0, 0],
             }

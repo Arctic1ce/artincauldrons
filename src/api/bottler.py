@@ -38,11 +38,13 @@ def get_bottle_plan():
 
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT \"num_red_ml\" FROM global_inventory"))
+        for row in result:
+            print(row[0])
     
     # if there is at least 100ml of red
     amount = 0
     if result[0][0] >= 100:
-        amount = result[0][0] % 100
+        amount = row[0] % 100
 
     return [
             {
