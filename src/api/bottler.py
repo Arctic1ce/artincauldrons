@@ -3,11 +3,8 @@ from enum import Enum
 from pydantic import BaseModel
 from src.api import auth
 
-# import sqlalchemy
-# from src import database as db
-
-# with db.engine.begin() as connection:
-#         result = connection.execute(sql_to_execute)
+import sqlalchemy
+from src import database as db
 
 router = APIRouter(
     prefix="/bottler",
@@ -39,9 +36,17 @@ def get_bottle_plan():
 
     # Initial logic: bottle all barrels into red potions.
 
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("SELECT \"num_red_ml\" FROM global_inventory"))
+    
+    # if there is at least 100ml of red
+    amount = 0
+    if result[0][0] >= 100:
+        amount = result[0][0] % 100
+
     return [
             {
                 "potion_type": [100, 0, 0, 0],
-                "quantity": 5,
+                "quantity": amount,
             }
         ]
