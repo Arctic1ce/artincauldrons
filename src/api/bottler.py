@@ -45,8 +45,8 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     potions = red_potions + list_red_potions
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("UPDATE global_inventory SET \"num_red_ml\" = :amount_ml, \"num_red_potions\" = :amount_potions"),
-            amount_ml=ml, amount_potions=potions)
+        stmt = sqlalchemy.text("UPDATE global_inventory SET \"num_red_ml\" = :a, \"num_red_potions\" = :b")
+        result = connection.execute(stmt, {"a": ml, "b": potions})
 
     return "OK"
 
