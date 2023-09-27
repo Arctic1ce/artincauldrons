@@ -21,6 +21,32 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
     print(potions_delivered)
 
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("SELECT \"num_red_ml\" FROM global_inventory"))
+        for row in result:
+            print(row[0])
+    
+    red_ml = row[0]
+
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("SELECT \"num_red_potions\" FROM global_inventory"))
+        for row in result:
+            print(row[0])
+    
+    red_potions = row[0]
+
+    list_red_ml = 0
+    list_red_potions = 0
+    for potion in potions_delivered:
+        list_red_ml += (potion.potion_type[0] * potion.quantity)
+        list_red_potions += potion.quantity
+
+    ml = red_ml - list_red_ml
+    potions = red_potions + list_red_potions
+
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("UPDATE global_inventory SET \"num_red_ml\" = {ml}, \"num_red_potions\" = {potions}"))
+
     return "OK"
 
 # Gets called 4 times a day
@@ -45,17 +71,6 @@ def get_bottle_plan():
     amount = 0
     if row[0] >= 100:
         amount = row[0] % 100
-        ml = row[0] - (amount * 100)
-
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text("SELECT \"num_red_potions\" FROM global_inventory"))
-            for row in result:
-                print(row[0])
-
-        potions = row[0] + amount
-
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text("UPDATE global_inventory SET \"num_red_ml\" = {ml}, \"num_red_potions\" = {potions}"))
 
     return [
             {
