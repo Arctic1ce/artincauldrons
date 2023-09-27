@@ -2,11 +2,8 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from src.api import auth
 
-# import sqlalchemy
-# from src import database as db
-
-# with db.engine.begin() as connection:
-#         result = connection.execute(sql_to_execute)
+import sqlalchemy
+from src import database as db
 
 router = APIRouter(
     prefix="/carts",
@@ -49,5 +46,21 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
+
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("SELECT \"num_red_potions\" FROM global_inventory"))
+        for row in result:
+            print(row[0])
+    potions = row[0] - 1
+
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("SELECT \"gold\" FROM global_inventory"))
+        for row in result:
+            print(row[0])
+    gold = row[0] + 50
+
+    with db.engine.begin() as connection:
+        stmt = sqlalchemy.text("UPDATE global_inventory SET \"num_red_potions\" = :a, \"gold\" = :b")
+        result = connection.execute(stmt, {"a": potions, "b": gold})
 
     return {"total_potions_bought": 1, "total_gold_paid": 50}

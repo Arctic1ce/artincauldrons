@@ -71,7 +71,7 @@ def get_bottle_plan():
     # if there is at least 100ml of red
     amount = 0
     if row[0] >= 100:
-        amount = row[0] % 100
+        amount = row[0] // 100
 
     return [
             {
