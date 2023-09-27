@@ -25,6 +25,25 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
     """ """
     print(barrels_delivered)
 
+    for barrel in barrels_delivered:
+        if (barrel.sku == "SMALL_RED_BARREL"):
+            ml = (barrel.ml_per_barrel * barrel.quantity)
+
+            with db.engine.begin() as connection:
+                result = connection.execute(sqlalchemy.text("SELECT \"num_red_ml\" FROM global_inventory"))
+                for row in result:
+                    print(row[0])
+            red_ml = row[0] + ml
+
+            with db.engine.begin() as connection:
+                result = connection.execute(sqlalchemy.text("SELECT \"gold\" FROM global_inventory"))
+                for row in result:
+                    print(row[0])
+            gold = row[0] - barrel.price
+            
+            with db.engine.begin() as connection:
+                result = connection.execute(sqlalchemy.text("UPDATE global_inventory SET \"num_red_ml\" = {red_ml}, \"gold\" = {gold}"))
+
     return "OK"
 
 # Gets called once a day
