@@ -19,7 +19,17 @@ class NewCart(BaseModel):
 @router.post("/")
 def create_cart(new_cart: NewCart):
     """ """
-    return {"cart_id": 1}
+
+    with db.engine.begin() as connection:
+        stmt = sqlalchemy.text("INSERT INTO cart (customer) VALUES (:a)")
+        result = connection.execute(stmt, {"a": new_cart.customer})
+    
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("SELECT cart_id FROM cart ORDER BY cart_id DESC LIMIT 1"))
+        for row in result:
+            print(row[0])
+
+    return {"cart_id": row[0]}
 
 
 @router.get("/{cart_id}")
@@ -37,6 +47,22 @@ class CartItem(BaseModel):
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
 
+    with db.engine.begin() as connection:
+        stmt = sqlalchemy.text("SELECT * FROM cart_items WHERE (cart_id = :a AND item_sku = :b)")
+        result = connection.execute(stmt, {"a": cart_id, "b": item_sku})
+
+        exists = False
+        for row in result: # if item is not already in cart
+            exists = True
+            with db.engine.begin() as connection:
+                stmt = sqlalchemy.text("UPDATE cart_items SET quantity = :a")
+                result = connection.execute(stmt, {"a": cart_item.quantity})
+            break
+        if not exists:
+            with db.engine.begin() as connection:
+                stmt = sqlalchemy.text("INSERT INTO cart_items (cart_id, item_sku, quantity) VALUES (:a, :b, :c)")
+                result = connection.execute(stmt, {"a": cart_id, "b": item_sku, "c": cart_item.quantity})
+
     return "OK"
 
 
@@ -51,16 +77,28 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         result = connection.execute(sqlalchemy.text("SELECT \"num_red_potions\" FROM global_inventory"))
         for row in result:
             print(row[0])
-    potions = row[0] - 1
+    potions = row[0]
+
+    with db.engine.begin() as connection:
+        stmt = sqlalchemy.text("SELECT quantity FROM cart_items WHERE (cart_id = :a AND item_sku = 'RED_POTION_0')")
+        result = connection.execute(stmt, {"a": cart_id})
+        for row in result:
+            print(row[0])
+    quantity = row[0]
+
+    if quantity > potions:
+        quantity = potions
+    potions = potions - quantity
 
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT \"gold\" FROM global_inventory"))
         for row in result:
             print(row[0])
-    gold = row[0] + 50
+    cost = quantity * 50
+    gold = row[0] + cost
 
     with db.engine.begin() as connection:
         stmt = sqlalchemy.text("UPDATE global_inventory SET \"num_red_potions\" = :a, \"gold\" = :b")
         result = connection.execute(stmt, {"a": potions, "b": gold})
 
-    return {"total_potions_bought": 1, "total_gold_paid": 50}
+    return {"total_potions_bought": quantity, "total_gold_paid": cost}
