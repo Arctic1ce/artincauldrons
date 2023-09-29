@@ -73,11 +73,13 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
 
+    red_potions = 0
+    gold = 0
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT \"num_red_potions\" FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
         for row in result:
-            print(row[0])
-    potions = row[0]
+            red_potions = row[0]
+            gold = row[2]
 
     with db.engine.begin() as connection:
         stmt = sqlalchemy.text("SELECT quantity FROM cart_items WHERE (cart_id = :a AND item_sku = 'RED_POTION_0')")
@@ -86,19 +88,15 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             print(row[0])
     quantity = row[0]
 
-    if quantity > potions:
-        quantity = potions
-    potions = potions - quantity
+    if quantity > red_potions:
+        quantity = red_potions
+    red_potions = red_potions - quantity
 
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT \"gold\" FROM global_inventory"))
-        for row in result:
-            print(row[0])
     cost = quantity * 50
-    gold = row[0] + cost
+    gold = gold + cost
 
     with db.engine.begin() as connection:
-        stmt = sqlalchemy.text("UPDATE global_inventory SET \"num_red_potions\" = :a, \"gold\" = :b")
-        result = connection.execute(stmt, {"a": potions, "b": gold})
+        stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_potions = :a, gold = :b")
+        result = connection.execute(stmt, {"a": red_potions, "b": gold})
 
     return {"total_potions_bought": quantity, "total_gold_paid": cost}

@@ -21,19 +21,13 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
     print(potions_delivered)
 
+    red_potions = 0
+    red_ml = 0
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT \"num_red_ml\" FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
         for row in result:
-            print(row[0])
-    
-    red_ml = row[0]
-
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT \"num_red_potions\" FROM global_inventory"))
-        for row in result:
-            print(row[0])
-    
-    red_potions = row[0]
+            red_potions = row[0]
+            red_ml = row[1]
 
     list_red_ml = 0
     list_red_potions = 0
@@ -45,7 +39,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     potions = red_potions + list_red_potions
 
     with db.engine.begin() as connection:
-        stmt = sqlalchemy.text("UPDATE global_inventory SET \"num_red_ml\" = :a, \"num_red_potions\" = :b")
+        stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = :a, num_red_potions = :b")
         result = connection.execute(stmt, {"a": ml, "b": potions})
 
     return "OK"
@@ -63,15 +57,16 @@ def get_bottle_plan():
 
     # Initial logic: bottle all barrels into red potions.
 
+    red_ml = 0
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT \"num_red_ml\" FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
         for row in result:
-            print(row[0])
+            red_ml = row[1]
     
     # if there is at least 100ml of red
     amount = 0
-    if row[0] >= 100:
-        amount = row[0] // 100
+    if red_ml >= 100:
+        amount = red_ml // 100
 
     return [
             {

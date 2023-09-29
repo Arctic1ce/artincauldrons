@@ -29,20 +29,18 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
         if barrel.sku == "SMALL_RED_BARREL":
             ml = (barrel.ml_per_barrel * barrel.quantity)
 
+            red_ml = 0
+            gold = 0
             with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text("SELECT \"num_red_ml\" FROM global_inventory"))
+                result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
                 for row in result:
-                    print(row[0])
-            red_ml = row[0] + ml
-
-            with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text("SELECT \"gold\" FROM global_inventory"))
-                for row in result:
-                    print(row[0])
-            gold = row[0] - (barrel.price * barrel.quantity)
+                    red_ml = row[1]
+                    gold = row[2]
+            red_ml = red_ml + ml
+            gold = gold - (barrel.price * barrel.quantity)
             
             with db.engine.begin() as connection:
-                stmt = sqlalchemy.text("UPDATE global_inventory SET \"num_red_ml\" = :a, \"gold\" = :b")
+                stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = :a, gold = :b")
                 result = connection.execute(stmt, {"a": red_ml, "b": gold})
 
     return "OK"
@@ -53,21 +51,17 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)
 
+    potions = 0
+    gold = 0
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT \"num_red_potions\" FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
         for row in result:
+            potions = row[0]
+            gold = row[2]
             print(row[0])
 
     # buy a barrel if less than 10 potions
     amount = 0
-    potions = row[0]
-    
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT \"gold\" FROM global_inventory"))
-        for row in result:
-            print(row[0])
-    gold = row[0]
-
     for barrel in wholesale_catalog:
         if barrel.sku == "SMALL_RED_BARREL":
             if potions < 10 and gold >= barrel.price:
