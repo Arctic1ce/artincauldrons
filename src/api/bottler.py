@@ -68,9 +68,12 @@ def get_bottle_plan():
     if red_ml >= 100:
         amount = red_ml // 100
 
-    return [
-            {
-                "potion_type": [100, 0, 0, 0],
-                "quantity": amount,
-            }
-        ]
+    if amount > 0:
+        return [
+                {
+                    "potion_type": [100, 0, 0, 0],
+                    "quantity": amount,
+                }
+            ]
+    else:
+        return []

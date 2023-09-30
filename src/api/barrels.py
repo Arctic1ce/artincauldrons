@@ -66,10 +66,13 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         if barrel.sku == "SMALL_RED_BARREL":
             if potions < 10 and gold >= barrel.price:
                 amount = 1
-
-    return [
-        {
-            "sku": "SMALL_RED_BARREL",
-            "quantity": amount,
-        }
-    ]
+    
+    if amount > 0:
+        return [
+            {
+                "sku": "SMALL_RED_BARREL",
+                "quantity": amount,
+            }
+        ]
+    else:
+        return []
