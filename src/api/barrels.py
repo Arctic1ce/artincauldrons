@@ -34,8 +34,8 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
             with db.engine.begin() as connection:
                 result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
                 for row in result:
-                    red_ml = row[1]
-                    gold = row[2]
+                    red_ml = row[3]
+                    gold = row[6]
             red_ml = red_ml + ml
             gold = gold - (barrel.price * barrel.quantity)
             
@@ -57,7 +57,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
         for row in result:
             potions = row[0]
-            gold = row[2]
+            gold = row[6]
             print(row[0])
 
     # buy a barrel if less than 10 potions

@@ -79,7 +79,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
         for row in result:
             red_potions = row[0]
-            gold = row[2]
+            gold = row[6]
 
     with db.engine.begin() as connection:
         stmt = sqlalchemy.text("SELECT quantity FROM cart_items WHERE (cart_id = :a AND item_sku = 'RED_POTION_0')")
