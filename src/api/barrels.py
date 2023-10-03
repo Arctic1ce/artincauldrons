@@ -34,11 +34,12 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
         gold = 0
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-            for row in result:
-                red_ml = row[3]
-                green_ml = row[4]
-                blue_ml = row[5]
-                gold = row[6]
+
+            row = result.first()
+            red_ml = row.num_red_ml
+            green_ml = row.num_green_ml
+            blue_ml = row.num_blue_ml
+            gold = row.gold
 
         if barrel.sku == "SMALL_RED_BARREL" or barrel.sku == "MEDIUM_RED_BARREL" or barrel.sku == "LARGE_RED_BARREL":
             red_ml = red_ml + ml
@@ -71,15 +72,16 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     gold = 0
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-        for row in result:
-            red_potions = row[0]
-            green_potions = row[1]
-            blue_potions = row[2]
-            red_ml = row[3]
-            green_ml = row[4]
-            blue_ml = row[5]
-            potions = red_potions + green_potions + blue_potions
-            gold = row[6]
+
+        row = result.first()
+        red_potions = row.num_red_potions
+        green_potions = row.num_green_potions
+        blue_potions = row.num_blue_potions
+        red_ml = row.num_red_ml
+        green_ml = row.num_green_ml
+        blue_ml = row.num_blue_ml
+        gold = row.gold
+        potions = red_potions + green_potions + blue_potions
         
     color = ""
     red = red_potions + (red_ml // 100)
