@@ -86,12 +86,13 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     gold = 0
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-        for row in result:
-            red_potions = row[0]
-            green_potions = row[1]
-            blue_potions = row[2]
-            gold = row[6]
 
+        row = result.first()
+        red_potions = row.num_red_potions
+        green_potions = row.num_green_potions
+        blue_potions = row.num_blue_potions
+        gold = row.gold
+        
     potions = [0, 0, 0]
     with db.engine.begin() as connection:
         stmt = sqlalchemy.text("SELECT * FROM cart_items WHERE cart_id = :a")

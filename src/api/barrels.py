@@ -116,7 +116,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "sku": barrel.sku,
                         "quantity": 1
                     })
-        elif color == "green":
+            else:
+                color = "green"
+        if color == "green":
             if barrel.sku == "LARGE_GREEN_BARREL":
                 if gold >= barrel.price:
                     cart.append({
@@ -135,7 +137,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "sku": barrel.sku,
                         "quantity": 1
                     })
-        else:
+            else:
+                color = "blue"
+        if color == "blue":
             if barrel.sku == "LARGE_BLUE_BARREL":
                 if gold >= barrel.price:
                     cart.append({
