@@ -29,13 +29,14 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     blue_ml = 0
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-        for row in result:
-            red_potions = row[0]
-            green_potions = row[1]
-            blue_potions = row[2]
-            red_ml = row[3]
-            green_ml = row[4]
-            blue_ml = row[5]
+
+        row = result.first()
+        red_potions = row.num_red_potions
+        green_potions = row.num_green_potions
+        blue_potions = row.num_blue_potions
+        red_ml = row.num_red_ml
+        green_ml = row.num_green_ml
+        blue_ml = row.num_blue_ml
 
     list_red_ml = 0
     list_green_ml = 0
@@ -82,10 +83,11 @@ def get_bottle_plan():
     blue_ml = 0
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-        for row in result:
-            red_ml = row[3]
-            green_ml = row[4]
-            blue_ml = row[5]
+
+        row = result.first()
+        red_ml = row.num_red_ml
+        green_ml = row.num_green_ml
+        blue_ml = row.num_blue_ml
     
     # if there is at least 100ml of red
     amounts = [0, 0, 0]
