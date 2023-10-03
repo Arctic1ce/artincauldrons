@@ -118,7 +118,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
     num_potions = red_potions + green_potions + blue_potions
 
-    cost = num_potions * 50
+    cost = (potions[0] * 50) + (potions[1] * 50) + (potions[2] * 60)
     gold = gold + cost
 
     with db.engine.begin() as connection:

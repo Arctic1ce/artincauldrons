@@ -100,7 +100,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     for barrel in wholesale_catalog:
         if color == "red":
             if barrel.sku == "LARGE_RED_BARREL" or barrel.sku == "MEDIUM_RED_BARREL" or barrel.sku == "SMALL_RED_BARREL" or barrel.sku == "TINY_RED_BARREL":
-                if gold >= barrel.price:
+                if temp_gold >= barrel.price:
                     cart.append({
                         "sku": barrel.sku,
                         "quantity": 1
@@ -108,7 +108,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     temp_gold -= barrel.price
         elif color == "green":
             if barrel.sku == "LARGE_GREEN_BARREL" or barrel.sku == "MEDIUM_GREEN_BARREL" or barrel.sku == "SMALL_GREEN_BARREL" or barrel.sku == "TINY_GREEN_BARREL":
-                if gold >= barrel.price:
+                if temp_gold >= barrel.price:
                     cart.append({
                         "sku": barrel.sku,
                         "quantity": 1
@@ -116,7 +116,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     temp_gold -= barrel.price
         else:
             if barrel.sku == "LARGE_BLUE_BARREL" or barrel.sku == "MEDIUM_BLUE_BARREL" or barrel.sku == "SMALL_BLUE_BARREL" or barrel.sku == "TINY_BLUE_BARREL":
-                if gold >= barrel.price:
+                if temp_gold >= barrel.price:
                     cart.append({
                         "sku": barrel.sku,
                         "quantity": 1
