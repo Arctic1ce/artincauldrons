@@ -96,67 +96,31 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         color = "red"
         
     cart = []
+    temp_gold = gold
     for barrel in wholesale_catalog:
         if color == "red":
-            if barrel.sku == "LARGE_RED_BARREL":
+            if barrel.sku == "LARGE_RED_BARREL" or barrel.sku == "MEDIUM_RED_BARREL" or barrel.sku == "SMALL_RED_BARREL" or barrel.sku == "TINY_RED_BARREL":
                 if gold >= barrel.price:
                     cart.append({
                         "sku": barrel.sku,
                         "quantity": 1
                     })
-            elif barrel.sku == "MEDIUM_RED_BARREL":
+                    temp_gold -= barrel.price
+        elif color == "green":
+            if barrel.sku == "LARGE_GREEN_BARREL" or barrel.sku == "MEDIUM_GREEN_BARREL" or barrel.sku == "SMALL_GREEN_BARREL" or barrel.sku == "TINY_GREEN_BARREL":
                 if gold >= barrel.price:
                     cart.append({
                         "sku": barrel.sku,
                         "quantity": 1
                     })
-            elif barrel.sku == "SMALL_RED_BARREL":
+                    temp_gold -= barrel.price
+        else:
+            if barrel.sku == "LARGE_BLUE_BARREL" or barrel.sku == "MEDIUM_BLUE_BARREL" or barrel.sku == "SMALL_BLUE_BARREL" or barrel.sku == "TINY_BLUE_BARREL":
                 if gold >= barrel.price:
                     cart.append({
                         "sku": barrel.sku,
                         "quantity": 1
                     })
-            else:
-                color = "green"
-        if color == "green":
-            if barrel.sku == "LARGE_GREEN_BARREL":
-                if gold >= barrel.price:
-                    cart.append({
-                        "sku": barrel.sku,
-                        "quantity": 1
-                    })
-            elif barrel.sku == "MEDIUM_GREEN_BARREL":
-                if gold >= barrel.price:
-                    cart.append({
-                        "sku": barrel.sku,
-                        "quantity": 1
-                    })
-            elif barrel.sku == "SMALL_GREEN_BARREL":
-                if gold >= barrel.price:
-                    cart.append({
-                        "sku": barrel.sku,
-                        "quantity": 1
-                    })
-            else:
-                color = "blue"
-        if color == "blue":
-            if barrel.sku == "LARGE_BLUE_BARREL":
-                if gold >= barrel.price:
-                    cart.append({
-                        "sku": barrel.sku,
-                        "quantity": 1
-                    })
-            elif barrel.sku == "MEDIUM_BLUE_BARREL":
-                if gold >= barrel.price:
-                    cart.append({
-                        "sku": barrel.sku,
-                        "quantity": 1
-                    })
-            elif barrel.sku == "SMALL_BLUE_BARREL":
-                if gold >= barrel.price:
-                    cart.append({
-                        "sku": barrel.sku,
-                        "quantity": 1
-                    })
+                    temp_gold -= barrel.price
 
     return cart
