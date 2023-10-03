@@ -19,10 +19,11 @@ def get_catalog():
     potions = []
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-        for row in result:
-            potions.append(row[0])
-            potions.append(row[1])
-            potions.append(row[2])
+
+        row = result.first()
+        potions.append(row.num_red_potions)
+        potions.append(row.num_green_potions)
+        potions.append(row.num_blue_potions)
 
     result = []
     for i in range(len(potions)):
