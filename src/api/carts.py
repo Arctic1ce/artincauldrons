@@ -116,7 +116,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     green_potions = green_potions - potions[1]
     blue_potions = blue_potions - potions[2]
 
-    num_potions = red_potions + green_potions + blue_potions
+    num_potions = potions[0] + potions[1] + potions[2]
 
     cost = (potions[0] * 50) + (potions[1] * 50) + (potions[2] * 60)
     gold = gold + cost
