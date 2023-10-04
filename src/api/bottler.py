@@ -89,7 +89,6 @@ def get_bottle_plan():
         green_ml = row.num_green_ml
         blue_ml = row.num_blue_ml
     
-    # if there is at least 100ml of red
     amounts = [0, 0, 0]
     if red_ml >= 100:
         amounts[0] = red_ml // 100
@@ -103,7 +102,7 @@ def get_bottle_plan():
         if amounts[i] > 0:
             type = [0, 0, 0, 0]
             quantity = amounts[i]
-            type[i] = quantity * 100
+            type[i] = 100
             result.append({
                 "potion_type": type,
                 "quantity": quantity
