@@ -48,9 +48,13 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
         list_red_ml += (potion.potion_type[0] * potion.quantity)
         list_green_ml += (potion.potion_type[1] * potion.quantity)
         list_blue_ml += (potion.potion_type[2] * potion.quantity)
-        list_red_potions += (potion.potion_type[0] * potion.quantity) / 100
-        list_green_potions += (potion.potion_type[1] * potion.quantity) / 100
-        list_blue_potions += (potion.potion_type[2] * potion.quantity) / 100
+        # list_red_potions += (potion.potion_type[0] * potion.quantity / 100)
+        # list_green_potions += (potion.potion_type[1] * potion.quantity / 100)
+        # list_blue_potions += (potion.potion_type[2] * potion.quantity / 100)
+
+    list_red_potions = list_red_ml / 100
+    list_green_potions = list_green_ml / 100
+    list_blue_potions = list_blue_ml / 100
 
     red_ml = red_ml - list_red_ml
     green_ml = green_ml - list_green_ml
@@ -90,12 +94,10 @@ def get_bottle_plan():
         blue_ml = row.num_blue_ml
     
     amounts = [0, 0, 0]
-    if red_ml >= 100:
-        amounts[0] = red_ml // 100
-    if green_ml >= 100:
-        amounts[1] = green_ml // 100
-    if blue_ml >= 100:
-        amounts[2] = blue_ml // 100
+
+    amounts[0] = red_ml // 100
+    amounts[1] = green_ml // 100
+    amounts[2] = blue_ml // 100
 
     result = []
     for i in range(len(amounts)):

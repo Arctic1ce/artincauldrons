@@ -16,14 +16,14 @@ def get_catalog():
     red_potions = 0
     green_potions = 0
     blue_potions = 0
-    potions = []
+    potions = [0, 0, 0]
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
 
         row = result.first()
-        potions.append(row.num_red_potions)
-        potions.append(row.num_green_potions)
-        potions.append(row.num_blue_potions)
+        potions[0] = row.num_red_potions
+        potions[1] = row.num_green_potions
+        potions[2] = row.num_blue_potions
 
     result = []
     for i in range(len(potions)):

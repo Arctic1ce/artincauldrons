@@ -88,12 +88,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     green = green_potions + (green_ml // 100)
     blue = blue_potions + (blue_ml // 100)
     
-    if blue < red and blue < green:
-        color = "blue"
-    elif green < red and green < blue:
+    if red <= green and red <= blue:
+        color = "red"
+    elif green <= red and green <= blue:
         color = "green"
     else:
-        color = "red"
+        color = "blue"
         
     cart = []
     temp_gold = gold

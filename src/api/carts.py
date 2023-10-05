@@ -59,7 +59,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
         result = connection.execute(stmt, {"a": cart_id, "b": item_sku})
 
         exists = False
-        for row in result: # if item is not already in cart
+        for row in result: # if item is already in cart
             exists = True
             with db.engine.begin() as connection:
                 stmt = sqlalchemy.text("UPDATE cart_items SET quantity = :a")
@@ -102,7 +102,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 potions[0] = row[2]
             elif row[1] == "GREEN_POTION_0":
                 potions[1] = row[2]
-            elif row[2] == "BLUE_POTION_0":
+            elif row[1] == "BLUE_POTION_0":
                 potions[2] = row[2]
 
     if potions[0] > red_potions:
