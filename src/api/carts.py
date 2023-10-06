@@ -105,12 +105,9 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             elif row[1] == "BLUE_POTION_0":
                 potions[2] = row[2]
 
-    if potions[0] > red_potions:
-        potions[0] = red_potions
-    if potions[1] > green_potions:
-        potions[1] = green_potions
-    if potions[2] > blue_potions:
-        potions[2] = blue_potions
+    # if customer is trying to buy more potions than available
+    if potions[0] > red_potions or potions[1] > green_potions or potions[2] > blue_potions:
+        return {"total_potions_bought": 0, "total_gold_paid": 0}
 
     red_potions = red_potions - potions[0]
     green_potions = green_potions - potions[1]
