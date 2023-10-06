@@ -21,6 +21,7 @@ def reset():
     with db.engine.begin() as connection:
         stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_potions = 0, num_green_potions = 0, num_blue_potions = 0, num_red_ml = 0, num_green_ml = 0, num_blue_ml = 0, gold = 100")
         result = connection.execute(stmt)
+        result = sqlalchemy.text("TRUNCATE cart; TRUNCATE cart_items")
 
     return "OK"
 
