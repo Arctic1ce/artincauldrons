@@ -20,12 +20,10 @@ class NewCart(BaseModel):
 def create_cart(new_cart: NewCart):
     """ """
 
+    id = -1
     with db.engine.begin() as connection:
         stmt = sqlalchemy.text("INSERT INTO cart (customer) VALUES (:a)")
         result = connection.execute(stmt, {"a": new_cart.customer})
-    
-    id = -1
-    with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT cart_id FROM cart ORDER BY cart_id DESC LIMIT 1"))
         for row in result:
             id = row[0]
