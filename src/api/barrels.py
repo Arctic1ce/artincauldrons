@@ -41,16 +41,17 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
             blue_ml = row.num_blue_ml
             gold = row.gold
 
-        if barrel.sku == "SMALL_RED_BARREL" or barrel.sku == "MEDIUM_RED_BARREL" or barrel.sku == "LARGE_RED_BARREL":
-            red_ml = red_ml + ml
-        elif barrel.sku == "SMALL_GREEN_BARREL" or barrel.sku == "MEDIUM_GREEN_BARREL" or barrel.sku == "LARGE_GREEN_BARREL":
-            green_ml = green_ml + ml
-        else:
-            blue_ml = blue_ml + ml
-        
-        gold = gold - (barrel.price * barrel.quantity)
+            if barrel.potion_type == [1, 0, 0, 0]:
+                red_ml = red_ml + ml
+            elif barrel.potion_type == [0, 1, 0, 0]:
+                green_ml = green_ml + ml
+            elif barrel.potion_type == [0, 0, 1, 0]:
+                blue_ml = blue_ml + ml
+            else:
+                raise Exception("Invalid potion type")
             
-        with db.engine.begin() as connection:
+            gold = gold - (barrel.price * barrel.quantity)
+            
             stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = :a, num_green_ml = :b, num_blue_ml = :c, gold = :d")
             result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": gold})
 

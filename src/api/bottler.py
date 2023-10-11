@@ -38,32 +38,29 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
         green_ml = row.num_green_ml
         blue_ml = row.num_blue_ml
 
-    list_red_ml = 0
-    list_green_ml = 0
-    list_blue_ml = 0
-    list_red_potions = 0
-    list_green_potions = 0
-    list_blue_potions = 0
-    for potion in potions_delivered:
-        list_red_ml += (potion.potion_type[0] * potion.quantity)
-        list_green_ml += (potion.potion_type[1] * potion.quantity)
-        list_blue_ml += (potion.potion_type[2] * potion.quantity)
-        # list_red_potions += (potion.potion_type[0] * potion.quantity / 100)
-        # list_green_potions += (potion.potion_type[1] * potion.quantity / 100)
-        # list_blue_potions += (potion.potion_type[2] * potion.quantity / 100)
+        list_red_ml = 0
+        list_green_ml = 0
+        list_blue_ml = 0
+        list_red_potions = 0
+        list_green_potions = 0
+        list_blue_potions = 0
+        
+        for potion in potions_delivered:
+            list_red_ml += (potion.potion_type[0] * potion.quantity)
+            list_green_ml += (potion.potion_type[1] * potion.quantity)
+            list_blue_ml += (potion.potion_type[2] * potion.quantity)
 
-    list_red_potions = list_red_ml / 100
-    list_green_potions = list_green_ml / 100
-    list_blue_potions = list_blue_ml / 100
+        list_red_potions = list_red_ml / 100
+        list_green_potions = list_green_ml / 100
+        list_blue_potions = list_blue_ml / 100
 
-    red_ml = red_ml - list_red_ml
-    green_ml = green_ml - list_green_ml
-    blue_ml = blue_ml - list_blue_ml
-    red_potions = red_potions + list_red_potions
-    green_potions = green_potions + list_green_potions
-    blue_potions = blue_potions + list_blue_potions
+        red_ml = red_ml - list_red_ml
+        green_ml = green_ml - list_green_ml
+        blue_ml = blue_ml - list_blue_ml
+        red_potions = red_potions + list_red_potions
+        green_potions = green_potions + list_green_potions
+        blue_potions = blue_potions + list_blue_potions
 
-    with db.engine.begin() as connection:
         stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = :a, num_green_ml = :b, num_blue_ml = :c, num_red_potions = :d, num_green_potions = :e, num_blue_potions = :f")
         result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": red_potions, "e": green_potions, "f": blue_potions})
 

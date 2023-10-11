@@ -91,8 +91,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         blue_potions = row.num_blue_potions
         gold = row.gold
         
-    potions = [0, 0, 0]
-    with db.engine.begin() as connection:
+        potions = [0, 0, 0]
+
         stmt = sqlalchemy.text("SELECT * FROM cart_items WHERE cart_id = :a")
         result = connection.execute(stmt, {"a": cart_id})
         for row in result:
@@ -103,20 +103,19 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             elif row[1] == "BLUE_POTION_0":
                 potions[2] = row[2]
 
-    # if customer is trying to buy more potions than available
-    if potions[0] > red_potions or potions[1] > green_potions or potions[2] > blue_potions:
-        return {"total_potions_bought": 0, "total_gold_paid": 0}
+        # if customer is trying to buy more potions than available
+        if potions[0] > red_potions or potions[1] > green_potions or potions[2] > blue_potions:
+            return {"total_potions_bought": 0, "total_gold_paid": 0}
 
-    red_potions = red_potions - potions[0]
-    green_potions = green_potions - potions[1]
-    blue_potions = blue_potions - potions[2]
+        red_potions = red_potions - potions[0]
+        green_potions = green_potions - potions[1]
+        blue_potions = blue_potions - potions[2]
 
-    num_potions = potions[0] + potions[1] + potions[2]
+        num_potions = potions[0] + potions[1] + potions[2]
 
-    cost = (potions[0] * 50) + (potions[1] * 50) + (potions[2] * 60)
-    gold = gold + cost
+        cost = (potions[0] * 50) + (potions[1] * 50) + (potions[2] * 60)
+        gold = gold + cost
 
-    with db.engine.begin() as connection:
         stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_potions = :a, num_green_potions = :b, num_blue_potions = :c, gold = :d")
         result = connection.execute(stmt, {"a": red_potions, "b": green_potions, "c": blue_potions, "d": gold})
 
