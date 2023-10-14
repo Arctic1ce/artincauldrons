@@ -25,35 +25,31 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
     """ """
     print(barrels_delivered)
 
-    for barrel in barrels_delivered:
-        ml = (barrel.ml_per_barrel * barrel.quantity)
-
+    with db.engine.begin() as connection:
         red_ml = 0
         green_ml = 0
         blue_ml = 0
-        gold = 0
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
+        dark_ml = 0
+        price = 0
 
-            row = result.first()
-            red_ml = row.num_red_ml
-            green_ml = row.num_green_ml
-            blue_ml = row.num_blue_ml
-            gold = row.gold
-
+        for barrel in barrels_delivered:
+            ml = (barrel.ml_per_barrel * barrel.quantity)
+        
             if barrel.potion_type == [1, 0, 0, 0]:
                 red_ml = red_ml + ml
             elif barrel.potion_type == [0, 1, 0, 0]:
                 green_ml = green_ml + ml
             elif barrel.potion_type == [0, 0, 1, 0]:
                 blue_ml = blue_ml + ml
+            elif barrel.potion_type == [0, 0, 0, 1]:
+                dark_ml = dark_ml + ml
             else:
                 raise Exception("Invalid potion type")
             
-            gold = gold - (barrel.price * barrel.quantity)
+            price = price + (barrel.price * barrel.quantity)
             
-            stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = :a, num_green_ml = :b, num_blue_ml = :c, gold = :d")
-            result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": gold})
+            stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = num_red_ml+:a, num_green_ml = num_green_ml+:b, num_blue_ml = num_blue_ml+:c, num_dark_ml = num_dark_ml+:d, gold = gold-:e")
+            result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": dark_ml, "e": price})
 
     return "OK"
 
@@ -63,38 +59,30 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)
 
-    red_potions = 0
     red_ml = 0
-    green_potions = 0
     green_ml = 0
-    blue_potions = 0
     blue_ml = 0
-    potions = 0
+    dark_ml = 0
     gold = 0
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
 
         row = result.first()
-        red_potions = row.num_red_potions
-        green_potions = row.num_green_potions
-        blue_potions = row.num_blue_potions
         red_ml = row.num_red_ml
         green_ml = row.num_green_ml
         blue_ml = row.num_blue_ml
+        dark_ml = row.num_dark_ml
         gold = row.gold
-        potions = red_potions + green_potions + blue_potions
         
     color = ""
-    red = red_potions + (red_ml // 100)
-    green = green_potions + (green_ml // 100)
-    blue = blue_potions + (blue_ml // 100)
-    
-    if red <= green and red <= blue:
+    if red_ml <= green_ml and red_ml <= blue_ml and red_ml <= dark_ml:
         color = "red"
-    elif green <= red and green <= blue:
+    elif green_ml <= red_ml and green_ml <= blue_ml and green_ml <= dark_ml:
         color = "green"
-    else:
+    elif blue_ml <= red_ml and blue_ml <= green_ml and blue_ml <= dark_ml:
         color = "blue"
+    else:
+        color = "dark"
         
     cart = []
     temp_gold = gold
@@ -115,8 +103,16 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": 1
                     })
                     temp_gold -= barrel.price
-        else:
+        elif color == "blue":
             if barrel.potion_type == [0, 0, 1, 0]:
+                if temp_gold >= barrel.price:
+                    cart.append({
+                        "sku": barrel.sku,
+                        "quantity": 1
+                    })
+                    temp_gold -= barrel.price
+        else:
+            if barrel.potion_type == [0, 0, 0, 1]:
                 if temp_gold >= barrel.price:
                     cart.append({
                         "sku": barrel.sku,
