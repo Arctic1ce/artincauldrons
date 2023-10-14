@@ -1,3 +1,4 @@
+from re import L
 from fastapi import APIRouter
 
 import sqlalchemy
@@ -13,44 +14,18 @@ def get_catalog():
     """
 
     # Can return a max of 20 items.
-    red_potions = 0
-    green_potions = 0
-    blue_potions = 0
-    potions = [0, 0, 0]
+    results = []
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
+        result_dict = result.mappings().all()
+        for row in result_dict:
+            if row["quantity"] > 0:
+                results.append({
+                    "sku": row["item_sku"],
+                    "name": row["item_name"],
+                    "quantity": row["quantity"],
+                    "price": row["item_price"],
+                    "potion_type": row["potion_type"],
+                })
 
-        row = result.first()
-        potions[0] = row.num_red_potions
-        potions[1] = row.num_green_potions
-        potions[2] = row.num_blue_potions
-
-    result = []
-    for i in range(len(potions)):
-        if potions[i] > 0:
-            if i == 0:
-                result.append({
-                                "sku": "RED_POTION_0",
-                                "name": "red potion",
-                                "quantity": potions[i],
-                                "price": 50,
-                                "potion_type": [100, 0, 0 ,0],
-                            })
-            elif i == 1:
-                result.append({
-                                "sku": "GREEN_POTION_0",
-                                "name": "green potion",
-                                "quantity": potions[i],
-                                "price": 50,
-                                "potion_type": [0, 100, 0 ,0],
-                            })
-            else:
-                result.append({
-                                "sku": "BLUE_POTION_0",
-                                "name": "blue potion",
-                                "quantity": potions[i],
-                                "price": 60,
-                                "potion_type": [0, 0, 100 ,0],
-                            })
-
-    return result
+    return results
