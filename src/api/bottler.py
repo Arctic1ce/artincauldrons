@@ -21,48 +21,23 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
     print(potions_delivered)
 
-    red_potions = 0
-    green_potions = 0
-    blue_potions = 0
-    red_ml = 0
-    green_ml = 0
-    blue_ml = 0
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
+        red_ml = 0
+        green_ml = 0
+        blue_ml = 0
+        dark_ml = 0
 
-        row = result.first()
-        red_potions = row.num_red_potions
-        green_potions = row.num_green_potions
-        blue_potions = row.num_blue_potions
-        red_ml = row.num_red_ml
-        green_ml = row.num_green_ml
-        blue_ml = row.num_blue_ml
-
-        list_red_ml = 0
-        list_green_ml = 0
-        list_blue_ml = 0
-        list_red_potions = 0
-        list_green_potions = 0
-        list_blue_potions = 0
-        
         for potion in potions_delivered:
-            list_red_ml += (potion.potion_type[0] * potion.quantity)
-            list_green_ml += (potion.potion_type[1] * potion.quantity)
-            list_blue_ml += (potion.potion_type[2] * potion.quantity)
+            red_ml += (potion.potion_type[0] * potion.quantity)
+            green_ml += (potion.potion_type[1] * potion.quantity)
+            blue_ml += (potion.potion_type[2] * potion.quantity)
+            dark_ml += (potion.potion_type[3] * potion.quantity)
 
-        list_red_potions = list_red_ml / 100
-        list_green_potions = list_green_ml / 100
-        list_blue_potions = list_blue_ml / 100
+            stmt = sqlalchemy.text("UPDATE potions SET quantity = quantity+:a WHERE potion_type = :b")
+            result = connection.execute(stmt, {"a": potion.quantity, "b": potion.potion_type})
 
-        red_ml = red_ml - list_red_ml
-        green_ml = green_ml - list_green_ml
-        blue_ml = blue_ml - list_blue_ml
-        red_potions = red_potions + list_red_potions
-        green_potions = green_potions + list_green_potions
-        blue_potions = blue_potions + list_blue_potions
-
-        stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = :a, num_green_ml = :b, num_blue_ml = :c, num_red_potions = :d, num_green_potions = :e, num_blue_potions = :f")
-        result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": red_potions, "e": green_potions, "f": blue_potions})
+        stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = :a, num_green_ml = :b, num_blue_ml = :c, num_dark_ml = :d")
+        result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": dark_ml})
 
     return "OK"
 
@@ -82,29 +57,31 @@ def get_bottle_plan():
     red_ml = 0
     green_ml = 0
     blue_ml = 0
+    dark_ml = 0
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-
         row = result.first()
         red_ml = row.num_red_ml
         green_ml = row.num_green_ml
         blue_ml = row.num_blue_ml
-    
-    amounts = [0, 0, 0]
+        dark_ml = row.num_dark_ml
 
-    amounts[0] = red_ml // 100
-    amounts[1] = green_ml // 100
-    amounts[2] = blue_ml // 100
-
-    result = []
-    for i in range(len(amounts)):
-        if amounts[i] > 0:
-            type = [0, 0, 0, 0]
-            quantity = amounts[i]
-            type[i] = 100
-            result.append({
-                "potion_type": type,
-                "quantity": quantity
-            })
+        mls = [red_ml, green_ml, blue_ml, dark_ml]
+        results = []
+        result = connection.execute(sqlalchemy.text("SELECT * FROM potions ORDER BY quantity ASC"))
+        result_dict = result.mappings().all()
+        for row in result_dict:
+            potion_type = row["potion_type"]
+            enough = True
+            for i in range(len(mls)):
+                if (mls[i] < potion_type[i]):
+                    enough = False
+                    break
             
-    return result
+            if enough:
+                results.append({
+                    "potion_type": potion_type,
+                    "quantity": 1
+                })
+            
+    return results
