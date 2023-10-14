@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from src.api import auth
@@ -78,45 +79,32 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
 
-    red_potions = 0
-    green_potions = 0
-    blue_potions = 0
-    gold = 0
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-
         row = result.first()
-        red_potions = row.num_red_potions
-        green_potions = row.num_green_potions
-        blue_potions = row.num_blue_potions
+
         gold = row.gold
-        
-        potions = [0, 0, 0]
+        num_potions = 0
+        cost = 0
 
         stmt = sqlalchemy.text("SELECT * FROM cart_items WHERE cart_id = :a")
         result = connection.execute(stmt, {"a": cart_id})
-        for row in result:
-            if row[1] == "RED_POTION_0":
-                potions[0] = row[2]
-            elif row[1] == "GREEN_POTION_0":
-                potions[1] = row[2]
-            elif row[1] == "BLUE_POTION_0":
-                potions[2] = row[2]
+        result_dict = result.mappings().all()
+        for row in result_dict:
+            requested_quantity = row["quantity"]
+            item_sku = row["item_sku"]
+            stmt = sqlalchemy.text("SELECT * FROM potions WHERE item_sku = :a")
+            result = connection.execute(stmt, {"a": item_sku})
+            row = result.first()
 
-        # if customer is trying to buy more potions than available
-        if potions[0] > red_potions or potions[1] > green_potions or potions[2] > blue_potions:
-            return {"total_potions_bought": 0, "total_gold_paid": 0}
+            num_potion = row.quantity
+            if num_potion >= requested_quantity:
+                num_potions += requested_quantity
+                cost += (requested_quantity * row.item_price)
+                result = connection.execute(sqlalchemy.text("UPDATE potions SET quantity = quantity-:a WHERE item_sku = :b"), {"a": requested_quantity, "b": item_sku})
 
-        red_potions = red_potions - potions[0]
-        green_potions = green_potions - potions[1]
-        blue_potions = blue_potions - potions[2]
-
-        num_potions = potions[0] + potions[1] + potions[2]
-
-        cost = (potions[0] * 50) + (potions[1] * 50) + (potions[2] * 60)
         gold = gold + cost
-
-        stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_potions = :a, num_green_potions = :b, num_blue_potions = :c, gold = :d")
-        result = connection.execute(stmt, {"a": red_potions, "b": green_potions, "c": blue_potions, "d": gold})
+        stmt = sqlalchemy.text("UPDATE global_inventory SET gold = :a")
+        result = connection.execute(stmt, {"a": gold})
 
     return {"total_potions_bought": num_potions, "total_gold_paid": cost}
