@@ -36,7 +36,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
             stmt = sqlalchemy.text("UPDATE potions SET quantity = quantity+:a WHERE potion_type = :b")
             result = connection.execute(stmt, {"a": potion.quantity, "b": potion.potion_type})
 
-        stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = :a, num_green_ml = :b, num_blue_ml = :c, num_dark_ml = :d")
+        stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = num_red_ml-:a, num_green_ml = num_green_ml-:b, num_blue_ml = num_blue_ml-:c, num_dark_ml = num_dark_ml-:d")
         result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": dark_ml})
 
     return "OK"
@@ -79,6 +79,8 @@ def get_bottle_plan():
                     break
             
             if enough:
+                for i in range(len(mls)):
+                    mls[i] -= potion_type[i]
                 results.append({
                     "potion_type": potion_type,
                     "quantity": 1
