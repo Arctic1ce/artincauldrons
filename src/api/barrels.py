@@ -46,19 +46,15 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
             else:
                 raise Exception("Invalid potion type")
             
-            price = price + (barrel.price * barrel.quantity)
+            price += (barrel.price * barrel.quantity)
             
-        stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = num_red_ml+:a, num_green_ml = num_green_ml+:b, num_blue_ml = num_blue_ml+:c, num_dark_ml = num_dark_ml+:d, gold = gold-:e")
+        price *= -1
+        stmt = sqlalchemy.text("INSERT INTO transactions (red_ml, green_ml, blue_ml, dark_ml, gold) VALUES (:a, :b, :c, :d, :e)")
         result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": dark_ml, "e": price})
-
-        stmt = sqlalchemy.text("INSERT INTO transactions (red_ml, green_ml, blue_ml, dark_ml) VALUES (:a, :b, :c, :d)")
-        result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": dark_ml})
 
         result = connection.execute(sqlalchemy.text("SELECT * FROM transactions ORDER BY created_at DESC LIMIT 1"))
         row = result.first()
         transaction_id = row.id
-
-        price *= -1
         stmt = sqlalchemy.text("INSERT INTO gold_ledger_entries (transaction_id, change) VALUES (:a, :b)")
         result = connection.execute(stmt, {"a": transaction_id, "b": price})
 
@@ -87,14 +83,20 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     dark_ml = 0
     gold = 0
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-
-        row = result.first()
-        red_ml = row.num_red_ml
-        green_ml = row.num_green_ml
-        blue_ml = row.num_blue_ml
-        dark_ml = row.num_dark_ml
-        gold = row.gold
+        result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS gold FROM gold_ledger_entries"))
+        gold = result.first()[0]
+        result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS red_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "red"})
+        red_ml = result.first()[0]
+        if red_ml == None: red_ml = 0
+        result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS green_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "green"})
+        green_ml = result.first()[0]
+        if green_ml == None: green_ml = 0
+        result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS blue_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "blue"})
+        blue_ml = result.first()[0]
+        if blue_ml == None: blue_ml = 0
+        result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS dark_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "dark"})
+        dark_ml = result.first()[0]
+        if dark_ml == None: dark_ml = 0
         
     color = ""
     if red_ml <= green_ml and red_ml <= blue_ml and red_ml <= dark_ml:

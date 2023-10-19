@@ -111,8 +111,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         stmt = sqlalchemy.text("UPDATE global_inventory SET gold = :a")
         result = connection.execute(stmt, {"a": gold})
 
-        stmt = sqlalchemy.text("INSERT INTO transactions (potion_type, quantity) VALUES (:a, :b)")
-        result = connection.execute(stmt, {"a": potion_types, "b": quantities})
+        stmt = sqlalchemy.text("INSERT INTO transactions (potion_type, quantity, gold) VALUES (:a, :b, :c)")
+        result = connection.execute(stmt, {"a": potion_types, "b": quantities, "c": cost})
 
         result = connection.execute(sqlalchemy.text("SELECT * FROM transactions ORDER BY created_at DESC LIMIT 1"))
         row = result.first()

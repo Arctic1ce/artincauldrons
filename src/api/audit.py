@@ -19,18 +19,6 @@ def get_inventory():
     ml = 0
     gold = 0
     with db.engine.begin() as connection:
-        
-        # DELETE these queries
-        # result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-        # row = result.first()
-        # ml = row.num_red_ml + row.num_green_ml + row.num_blue_ml + row.num_dark_ml
-        # gold = row.gold
-
-        # result = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
-        # result_dict = result.mappings().all()
-        # for row in result_dict:
-        #     potions += row["quantity"]
-
         result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS gold FROM gold_ledger_entries"))
         gold = result.first()[0]
 
