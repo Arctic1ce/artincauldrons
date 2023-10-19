@@ -124,7 +124,6 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         for i in range(len(potion_types)):
             stmt = sqlalchemy.text("INSERT INTO potions_ledger_entries (transaction_id, potion_type, change) VALUES (:a, :b, :c)")
             result = connection.execute(stmt, {"a": transaction_id, "b": potion_types[i], "c": quantities[i]})
-
         
 
     return {"total_potions_bought": num_potions, "total_gold_paid": cost}

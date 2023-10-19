@@ -55,6 +55,17 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
         row = result.first()
         transaction_id = row.id
 
+        ml_change = [red_ml, green_ml, blue_ml, dark_ml]
+        for i in range(len(ml_change)):
+            color = ""
+            if i == 0: color = "red"
+            elif i == 1: color = "green"
+            elif i == 2: color = "blue"
+            else: color = "dark"
+            if ml_change[i] > 0:
+                stmt = sqlalchemy.text("INSERT INTO ml_ledger_entries (transaction_id, color, change) VALUES (:a, :b, :c)")
+                result = connection.execute(stmt, {"a": transaction_id, "b": color, "c": ml_change[i]})
+
         for i in range(len(potion_types)):
             stmt = sqlalchemy.text("INSERT INTO potions_ledger_entries (transaction_id, potion_type, change) VALUES (:a, :b, :c)")
             result = connection.execute(stmt, {"a": transaction_id, "b": potion_types[i], "c": quantities[i]})

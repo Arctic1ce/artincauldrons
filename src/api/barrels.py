@@ -58,6 +58,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
         row = result.first()
         transaction_id = row.id
 
+        price *= -1
         stmt = sqlalchemy.text("INSERT INTO gold_ledger_entries (transaction_id, change) VALUES (:a, :b)")
         result = connection.execute(stmt, {"a": transaction_id, "b": price})
 
