@@ -19,11 +19,14 @@ def reset():
     """
 
     with db.engine.begin() as connection:
+        # delete these queries ****
         stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = 0, num_green_ml = 0, num_blue_ml = 0, num_dark_ml = 0, gold = 100")
         result = connection.execute(stmt)
         stmt = sqlalchemy.text("UPDATE potions SET quantity = 0")
         result = connection.execute(stmt)
-        result = connection.execute(sqlalchemy.text("TRUNCATE cart; TRUNCATE cart_items; TRUNCATE ledger_entries; TRUNCATE transactions"))
+
+        # only keep this last query
+        result = connection.execute(sqlalchemy.text("TRUNCATE cart; TRUNCATE cart_items; TRUNCATE gold_ledger_entries; TRUNCATE ml_ledger_entries; TRUNCATE potions_ledger_entries; TRUNCATE transactions"))
 
     return "OK"
 
