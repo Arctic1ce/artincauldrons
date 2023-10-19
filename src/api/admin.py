@@ -23,7 +23,7 @@ def reset():
         result = connection.execute(stmt)
         stmt = sqlalchemy.text("UPDATE potions SET quantity = 0")
         result = connection.execute(stmt)
-        result = connection.execute(sqlalchemy.text("TRUNCATE cart; TRUNCATE cart_items"))
+        result = connection.execute(sqlalchemy.text("TRUNCATE cart; TRUNCATE cart_items; TRUNCATE ledger_entries; TRUNCATE transactions"))
 
     return "OK"
 

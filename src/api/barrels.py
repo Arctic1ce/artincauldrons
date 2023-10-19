@@ -51,6 +51,27 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
         stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = num_red_ml+:a, num_green_ml = num_green_ml+:b, num_blue_ml = num_blue_ml+:c, num_dark_ml = num_dark_ml+:d, gold = gold-:e")
         result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": dark_ml, "e": price})
 
+        stmt = sqlalchemy.text("INSERT INTO transactions (red_ml, green_ml, blue_ml, dark_ml) VALUES (:a, :b, :c, :d)")
+        result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": dark_ml})
+
+        result = connection.execute(sqlalchemy.text("SELECT * FROM transactions ORDER BY created_at DESC LIMIT 1"))
+        row = result.first()
+        transaction_id = row.id
+
+        stmt = sqlalchemy.text("INSERT INTO gold_ledger_entries (transaction_id, change) VALUES (:a, :b)")
+        result = connection.execute(stmt, {"a": transaction_id, "b": price})
+
+        ml_change = [red_ml, green_ml, blue_ml, dark_ml]
+        for i in range(len(ml_change)):
+            color = ""
+            if i == 0: color = "red"
+            elif i == 1: color = "green"
+            elif i == 2: color = "blue"
+            else: color = "dark"
+            if ml_change[i] > 0:
+                stmt = sqlalchemy.text("INSERT INTO ml_ledger_entries (transaction_id, color, change) VALUES (:a, :b, :c)")
+                result = connection.execute(stmt, {"a": transaction_id, "b": color, "c": ml_change[i]})
+
     return "OK"
 
 # Gets called once a day
@@ -85,6 +106,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         color = "dark"
         
     cart = []
+    ml_change = [0, 0, 0, 0]
     temp_gold = gold
     for barrel in wholesale_catalog:
         if color == "red":
@@ -95,6 +117,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": 1
                     })
                     temp_gold -= barrel.price
+                    ml_change[0] += barrel.ml_per_barrel
         elif color == "green":
             if barrel.potion_type == [0, 1, 0, 0]:
                 if temp_gold >= barrel.price:
@@ -103,6 +126,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": 1
                     })
                     temp_gold -= barrel.price
+                    ml_change[1] += barrel.ml_per_barrel
         elif color == "blue":
             if barrel.potion_type == [0, 0, 1, 0]:
                 if temp_gold >= barrel.price:
@@ -111,6 +135,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": 1
                     })
                     temp_gold -= barrel.price
+                    ml_change[2] += barrel.ml_per_barrel
         else:
             if barrel.potion_type == [0, 0, 0, 1]:
                 if temp_gold >= barrel.price:
@@ -119,5 +144,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": 1
                     })
                     temp_gold -= barrel.price
+                    ml_change[3] += barrel.ml_per_barrel
 
     return cart

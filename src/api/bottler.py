@@ -1,3 +1,4 @@
+from re import M
 from fastapi import APIRouter, Depends
 from enum import Enum
 from pydantic import BaseModel
@@ -26,8 +27,12 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
         green_ml = 0
         blue_ml = 0
         dark_ml = 0
+        potion_types = []
+        quantities = []
 
         for potion in potions_delivered:
+            potion_types.append(potion.potion_type)
+            quantities.append(potion.quantity)
             red_ml += (potion.potion_type[0] * potion.quantity)
             green_ml += (potion.potion_type[1] * potion.quantity)
             blue_ml += (potion.potion_type[2] * potion.quantity)
@@ -38,6 +43,21 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
 
         stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = num_red_ml-:a, num_green_ml = num_green_ml-:b, num_blue_ml = num_blue_ml-:c, num_dark_ml = num_dark_ml-:d")
         result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": dark_ml})
+
+        red_ml *= -1
+        green_ml *= -1
+        blue_ml *= -1
+        dark_ml *= -1
+        stmt = sqlalchemy.text("INSERT INTO transactions (potion_type, quantity, red_ml, green_ml, blue_ml, dark_ml) VALUES (:a, :b, :c, :d, :e, :f)")
+        result = connection.execute(stmt, {"a": potion_types, "b": quantities, "c": red_ml, "d": green_ml, "e": blue_ml, "f": dark_ml})
+
+        result = connection.execute(sqlalchemy.text("SELECT * FROM transactions ORDER BY created_at DESC LIMIT 1"))
+        row = result.first()
+        transaction_id = row.id
+
+        for i in range(len(potion_types)):
+            stmt = sqlalchemy.text("INSERT INTO potions_ledger_entries (transaction_id, potion_type, change) VALUES (:a, :b, :c)")
+            result = connection.execute(stmt, {"a": transaction_id, "b": potion_types[i], "c": quantities[i]})
 
     return "OK"
 
