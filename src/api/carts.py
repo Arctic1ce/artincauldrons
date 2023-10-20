@@ -80,10 +80,9 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-        row = result.first()
+        result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS gold FROM gold_ledger_entries"))
+        gold = result.first()[0]
 
-        gold = row.gold
         num_potions = 0
         cost = 0
 
@@ -98,18 +97,15 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             stmt = sqlalchemy.text("SELECT * FROM potions WHERE item_sku = :a")
             result = connection.execute(stmt, {"a": item_sku})
             row = result.first()
+            potion_type = row.potion_type
 
-            num_potion = row.quantity
-            if num_potion >= requested_quantity:
-                potion_types.append(row.potion_type)
-                quantities.append(num_potion*-1)
+            result = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM potions_ledger_entries WHERE potion_type = :a"), {"a": potion_type})
+            quantity = result.first()[0]
+            if quantity >= requested_quantity:
+                potion_types.append(potion_type)
+                quantities.append(quantity*-1)
                 num_potions += requested_quantity
                 cost += (requested_quantity * row.item_price)
-                result = connection.execute(sqlalchemy.text("UPDATE potions SET quantity = quantity-:a WHERE item_sku = :b"), {"a": requested_quantity, "b": item_sku})
-                
-        gold = gold + cost
-        stmt = sqlalchemy.text("UPDATE global_inventory SET gold = :a")
-        result = connection.execute(stmt, {"a": gold})
 
         stmt = sqlalchemy.text("INSERT INTO transactions (potion_type, quantity, gold) VALUES (:a, :b, :c)")
         result = connection.execute(stmt, {"a": potion_types, "b": quantities, "c": cost})

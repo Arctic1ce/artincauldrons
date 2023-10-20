@@ -38,12 +38,6 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
             blue_ml += (potion.potion_type[2] * potion.quantity)
             dark_ml += (potion.potion_type[3] * potion.quantity)
 
-            stmt = sqlalchemy.text("UPDATE potions SET quantity = quantity+:a WHERE potion_type = :b")
-            result = connection.execute(stmt, {"a": potion.quantity, "b": potion.potion_type})
-
-        stmt = sqlalchemy.text("UPDATE global_inventory SET num_red_ml = num_red_ml-:a, num_green_ml = num_green_ml-:b, num_blue_ml = num_blue_ml-:c, num_dark_ml = num_dark_ml-:d")
-        result = connection.execute(stmt, {"a": red_ml, "b": green_ml, "c": blue_ml, "d": dark_ml})
-
         red_ml *= -1
         green_ml *= -1
         blue_ml *= -1
@@ -90,13 +84,6 @@ def get_bottle_plan():
     blue_ml = 0
     dark_ml = 0
     with db.engine.begin() as connection:
-        # result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-        # row = result.first()
-        # red_ml = row.num_red_ml
-        # green_ml = row.num_green_ml
-        # blue_ml = row.num_blue_ml
-        # dark_ml = row.num_dark_ml
-
         result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS red_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "red"})
         red_ml = result.first()[0]
         if red_ml == None: red_ml = 0
