@@ -105,7 +105,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         color = "dark"
         
     cart = []
-    ml_change = [0, 0, 0, 0]
     temp_gold = gold
     for barrel in wholesale_catalog:
         if color == "red":
@@ -116,7 +115,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": 1
                     })
                     temp_gold -= barrel.price
-                    ml_change[0] += barrel.ml_per_barrel
         elif color == "green":
             if barrel.potion_type == [0, 1, 0, 0]:
                 if temp_gold >= barrel.price:
@@ -125,7 +123,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": 1
                     })
                     temp_gold -= barrel.price
-                    ml_change[1] += barrel.ml_per_barrel
         elif color == "blue":
             if barrel.potion_type == [0, 0, 1, 0]:
                 if temp_gold >= barrel.price:
@@ -134,7 +131,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": 1
                     })
                     temp_gold -= barrel.price
-                    ml_change[2] += barrel.ml_per_barrel
         else:
             if barrel.potion_type == [0, 0, 0, 1]:
                 if temp_gold >= barrel.price:
@@ -143,6 +139,5 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": 1
                     })
                     temp_gold -= barrel.price
-                    ml_change[3] += barrel.ml_per_barrel
 
     return cart
