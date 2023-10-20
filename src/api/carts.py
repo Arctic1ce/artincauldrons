@@ -103,7 +103,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             quantity = result.first()[0]
             if quantity >= requested_quantity:
                 potion_types.append(potion_type)
-                quantities.append(quantity*-1)
+                quantities.append(requested_quantity*-1)
                 num_potions += requested_quantity
                 cost += (requested_quantity * row.item_price)
 
