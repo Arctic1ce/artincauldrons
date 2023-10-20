@@ -87,16 +87,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         gold = result.first()[0]
         result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS red_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "red"})
         red_ml = result.first()[0]
-        if red_ml == None: red_ml = 0
         result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS green_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "green"})
         green_ml = result.first()[0]
-        if green_ml == None: green_ml = 0
         result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS blue_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "blue"})
         blue_ml = result.first()[0]
-        if blue_ml == None: blue_ml = 0
         result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS dark_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "dark"})
         dark_ml = result.first()[0]
-        if dark_ml == None: dark_ml = 0
         
     color = ""
     if red_ml <= green_ml and red_ml <= blue_ml and red_ml <= dark_ml:
