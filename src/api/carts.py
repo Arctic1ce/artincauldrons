@@ -85,7 +85,7 @@ def search_orders(
         page = int(search_page)
     else:
         offset = 0
-        page = 1
+        page = 0
 
     j = sqlalchemy.join(cart_items, cart, cart_items.c.cart_id == cart.c.cart_id).join(potions, cart_items.c.item_sku == potions.c.item_sku)
     stmt = (
@@ -119,7 +119,7 @@ def search_orders(
         previous = str(page-1)
     else:
         previous = ""
-    if page < (math.ceil(num_items/5)):
+    if page < (math.ceil(num_items/5) - 1):
         next = str(page+1)
     else:
         next = ""
