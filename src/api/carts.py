@@ -89,6 +89,8 @@ def search_orders(
 
     if customer_name != "":
         stmt = stmt.where(cart.c.customer.ilike(f"%{customer_name}%"))
+    if potion_sku != "":
+        stmt = stmt.where(cart_items.c.item_sku.ilike(f"%{potion_sku}%"))
 
     with db.engine.connect() as connection:
         result = connection.execute(stmt)
