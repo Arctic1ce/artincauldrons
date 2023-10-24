@@ -6,6 +6,7 @@ from src.api import auth
 
 import sqlalchemy
 from src import database as db
+import math
 
 router = APIRouter(
     prefix="/carts",
@@ -79,11 +80,16 @@ def search_orders(
     else:
         assert False
 
+    if search_page != "":
+        offset = int(search_page) * 5
+        page = int(search_page)
+    else:
+        offset = 0
+        page = 0
+
     j = sqlalchemy.join(cart_items, cart, cart_items.c.cart_id == cart.c.cart_id).join(potions, cart_items.c.item_sku == potions.c.item_sku)
     stmt = (
         sqlalchemy.select(cart_items, cart, potions).select_from(j)
-        .limit(5)
-        .offset(0)
         .order_by(order_by)
     )
 
@@ -94,6 +100,8 @@ def search_orders(
 
     with db.engine.connect() as connection:
         result = connection.execute(stmt)
+        num_items = result.rowcount
+        result = connection.execute(stmt.limit(5).offset(offset))
         json = []
         for row in result:
             print(row)
@@ -107,9 +115,18 @@ def search_orders(
                 }
             )
 
+    if page > 0:
+        previous = str(page-1)
+    else:
+        previous = ""
+    if page < (math.ceil(num_items/5)):
+        next = str(page+1)
+    else:
+        next = ""
+
     return {
-        "previous": "",
-        "next": "",
+        "previous": previous,
+        "next": next,
         "results": json,
     }
 
