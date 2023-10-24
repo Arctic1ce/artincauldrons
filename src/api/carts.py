@@ -71,6 +71,13 @@ def search_orders(
         order_by = cart_items.c.created_at
     else:
         assert False
+    
+    if sort_order is search_sort_options.asc:
+        order_by = order_by.asc()
+    elif sort_order is search_sort_options.desc:
+        order_by = order_by.desc()
+    else:
+        assert False
 
     j = sqlalchemy.join(cart_items, cart, cart_items.c.cart_id == cart.c.cart_id).join(potions, cart_items.c.item_sku == potions.c.item_sku)
     stmt = (
