@@ -85,7 +85,7 @@ def search_orders(
         page = int(search_page)
     else:
         offset = 0
-        page = 0
+        page = 1
 
     j = sqlalchemy.join(cart_items, cart, cart_items.c.cart_id == cart.c.cart_id).join(potions, cart_items.c.item_sku == potions.c.item_sku)
     stmt = (
