@@ -56,18 +56,48 @@ def search_orders(
     time is 5 total line items.
     """
 
+    metadata_obj = sqlalchemy.MetaData()
+    cart = sqlalchemy.Table("cart", metadata_obj, autoload_with=db.engine)
+    cart_items = sqlalchemy.Table("cart_items", metadata_obj, autoload_with=db.engine)
+    potions = sqlalchemy.Table("potions", metadata_obj, autoload_with=db.engine)
+
+    if sort_col is search_sort_options.customer_name:
+        order_by = cart.c.customer
+    elif sort_col is search_sort_options.item_sku:
+        order_by = cart_items.c.item_sku
+    elif sort_col is search_sort_options.line_item_total:
+        order_by = cart_items.c.line_item_total
+    elif sort_col is search_sort_options.timestamp:
+        order_by = cart_items.c.created_at
+    else:
+        assert False
+
+    j = sqlalchemy.join(cart_items, cart, cart_items.c.cart_id == cart.c.cart_id).join(potions, cart_items.c.item_sku == potions.c.item_sku)
+    stmt = sqlalchemy.select(cart_items, cart, potions).select_from(j)
+    #     .limit(5)
+    #     .offset(0)
+    #     .order_by(order_by)
+    # )
+
+    with db.engine.connect() as connection:
+        result = connection.execute(stmt)
+        json = []
+        for row in result:
+            print(row)
+            json.append(
+                {
+                    "line_item_id": row.line_item_id,
+                    "item_sku": row.item_sku,
+                    "customer_name": row.customer,
+                    "line_item_total": row.quantity*row.item_price,
+                    "timestamp": row.created_at,
+                }
+            )
+
     return {
         "previous": "",
         "next": "",
-        "results": [
-            {
-                "line_item_id": 1,
-                "item_sku": "1 oblivion potion",
-                "customer_name": "Scaramouche",
-                "line_item_total": 50,
-                "timestamp": "2021-01-01T00:00:00Z",
-            }
-        ],
+        "results": json,
     }
 
 
