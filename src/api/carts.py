@@ -87,6 +87,9 @@ def search_orders(
         .order_by(order_by)
     )
 
+    if customer_name != "":
+        stmt = stmt.where(cart.c.customer.ilike(f"%{customer_name}%"))
+
     with db.engine.connect() as connection:
         result = connection.execute(stmt)
         json = []
