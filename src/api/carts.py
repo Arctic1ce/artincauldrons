@@ -72,9 +72,9 @@ def search_orders(
     else:
         assert False
     
-    if sort_order is search_sort_options.asc:
+    if sort_order is search_sort_order.asc:
         order_by = order_by.asc()
-    elif sort_order is search_sort_options.desc:
+    elif sort_order is search_sort_order.desc:
         order_by = order_by.desc()
     else:
         assert False
