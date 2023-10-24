@@ -73,11 +73,12 @@ def search_orders(
         assert False
 
     j = sqlalchemy.join(cart_items, cart, cart_items.c.cart_id == cart.c.cart_id).join(potions, cart_items.c.item_sku == potions.c.item_sku)
-    stmt = sqlalchemy.select(cart_items, cart, potions).select_from(j)
-    #     .limit(5)
-    #     .offset(0)
-    #     .order_by(order_by)
-    # )
+    stmt = (
+        sqlalchemy.select(cart_items, cart, potions).select_from(j)
+        .limit(5)
+        .offset(0)
+        .order_by(order_by)
+    )
 
     with db.engine.connect() as connection:
         result = connection.execute(stmt)
