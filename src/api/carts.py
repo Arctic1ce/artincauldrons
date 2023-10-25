@@ -206,6 +206,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
         potion_types = []
         quantities = []
+        skus = []
         costs = []
         stmt = sqlalchemy.text("SELECT * FROM cart_items WHERE cart_id = :a")
         result = connection.execute(stmt, {"a": cart_id})
@@ -223,6 +224,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             if quantity >= requested_quantity:
                 potion_types.append(potion_type)
                 quantities.append(requested_quantity*-1)
+                skus.append(item_sku)
                 costs.append(requested_quantity * row.item_price)
                 num_potions += requested_quantity
                 cost += (requested_quantity * row.item_price)
@@ -240,8 +242,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         for i in range(len(potion_types)):
             stmt = sqlalchemy.text("INSERT INTO potions_ledger_entries (transaction_id, potion_type, change) VALUES (:a, :b, :c)")
             result = connection.execute(stmt, {"a": transaction_id, "b": potion_types[i], "c": quantities[i]})
-            stmt = sqlalchemy.text("UPDATE cart_items SET line_item_total = :a WHERE cart_id = :b AND potion_type = :c")
-            result = connection.execute(stmt, {"a": costs[i], "b": cart_id, "c": potion_types[i]})
+            stmt = sqlalchemy.text("UPDATE cart_items SET line_item_total = :a WHERE cart_id = :b AND item_sku = :c")
+            result = connection.execute(stmt, {"a": costs[i], "b": cart_id, "c": skus[i]})
         
 
     return {"total_potions_bought": num_potions, "total_gold_paid": cost}
