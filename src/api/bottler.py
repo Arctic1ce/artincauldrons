@@ -93,25 +93,39 @@ def get_bottle_plan():
         result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS dark_ml FROM ml_ledger_entries WHERE color = :a"), {"a": "dark"})
         dark_ml = result.first()[0]
 
+        result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS potions FROM potions_ledger_entries"))
+        num_potions = result.first()[0]
+
         mls = [red_ml, green_ml, blue_ml, dark_ml]
         results = []
 
         result = connection.execute(sqlalchemy.text("SELECT potion_type, SUM(change) AS quantity FROM potions_ledger_entries GROUP BY potion_type ORDER BY quantity ASC"))
         result_dict = result.mappings().all()
         for row in result_dict:
-            potion_type = row["potion_type"]
-            enough = True
-            for i in range(len(mls)):
-                if (mls[i] < potion_type[i]):
-                    enough = False
-                    break
-            
-            if enough:
+            if num_potions < 300:
+                potion_type = row["potion_type"]
+                potion_quantity = row["quantity"]
+                enough = True
                 for i in range(len(mls)):
-                    mls[i] -= potion_type[i]
-                results.append({
-                    "potion_type": potion_type,
-                    "quantity": 1
-                })
+                    if (mls[i] < potion_type[i]):
+                        enough = False
+                        break
+                
+                if enough and potion_quantity < 30:
+                    quantity = float('inf')
+                    for i in range(len(mls)):
+                        if potion_type[i] > 0:
+                            quant = mls[i] // potion_type[i]
+                            if quant < quantity:
+                                quantity = quant
+                    if quantity + num_potions > 300:
+                        quantity = 300 - num_potions
+                    for i in range(len(mls)):
+                        mls[i] -= (quantity * potion_type[i])
+                    results.append({
+                        "potion_type": potion_type,
+                        "quantity": quantity
+                    })
+                    num_potions += quantity
             
     return results

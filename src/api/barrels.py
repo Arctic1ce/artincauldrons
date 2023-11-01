@@ -110,34 +110,38 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         if color == "red":
             if barrel.potion_type == [1, 0, 0, 0]:
                 if temp_gold >= barrel.price:
+                    quantity = (temp_gold // barrel.price)
                     cart.append({
                         "sku": barrel.sku,
-                        "quantity": 1
+                        "quantity": quantity
                     })
-                    temp_gold -= barrel.price
+                    temp_gold -= (barrel.price * quantity)
         elif color == "green":
             if barrel.potion_type == [0, 1, 0, 0]:
                 if temp_gold >= barrel.price:
+                    quantity = (temp_gold // barrel.price)
                     cart.append({
                         "sku": barrel.sku,
-                        "quantity": 1
+                        "quantity": quantity
                     })
-                    temp_gold -= barrel.price
+                    temp_gold -= (barrel.price * quantity)
         elif color == "blue":
             if barrel.potion_type == [0, 0, 1, 0]:
                 if temp_gold >= barrel.price:
+                    quantity = (temp_gold // barrel.price)
                     cart.append({
                         "sku": barrel.sku,
-                        "quantity": 1
+                        "quantity": quantity
                     })
-                    temp_gold -= barrel.price
+                    temp_gold -= (barrel.price * quantity)
         else:
             if barrel.potion_type == [0, 0, 0, 1]:
                 if temp_gold >= barrel.price:
+                    quantity = (temp_gold // barrel.price)
                     cart.append({
                         "sku": barrel.sku,
-                        "quantity": 1
+                        "quantity": quantity
                     })
-                    temp_gold -= barrel.price
+                    temp_gold -= (barrel.price * quantity)
 
     return cart
