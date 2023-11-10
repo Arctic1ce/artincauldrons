@@ -77,6 +77,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)
 
+    return []
+
     red_ml = 0
     green_ml = 0
     blue_ml = 0

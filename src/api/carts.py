@@ -197,53 +197,56 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
 
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS gold FROM gold_ledger_entries"))
-        gold = result.first()[0]
+    try:
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text("SELECT SUM(change) AS gold FROM gold_ledger_entries"))
+            gold = result.first()[0]
 
-        num_potions = 0
-        cost = 0
+            num_potions = 0
+            cost = 0
 
-        potion_types = []
-        quantities = []
-        skus = []
-        costs = []
-        stmt = sqlalchemy.text("SELECT * FROM cart_items WHERE cart_id = :a")
-        result = connection.execute(stmt, {"a": cart_id})
-        result_dict = result.mappings().all()
-        for row in result_dict:
-            requested_quantity = row["quantity"]
-            item_sku = row["item_sku"]
-            stmt = sqlalchemy.text("SELECT * FROM potions WHERE item_sku = :a")
-            result = connection.execute(stmt, {"a": item_sku})
+            potion_types = []
+            quantities = []
+            skus = []
+            costs = []
+            stmt = sqlalchemy.text("SELECT * FROM cart_items WHERE cart_id = :a")
+            result = connection.execute(stmt, {"a": cart_id})
+            result_dict = result.mappings().all()
+            for row in result_dict:
+                requested_quantity = row["quantity"]
+                item_sku = row["item_sku"]
+                stmt = sqlalchemy.text("SELECT * FROM potions WHERE item_sku = :a")
+                result = connection.execute(stmt, {"a": item_sku})
+                row = result.first()
+                potion_type = row.potion_type
+
+                result = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM potions_ledger_entries WHERE potion_type = :a"), {"a": potion_type})
+                quantity = result.first()[0]
+                if quantity >= requested_quantity:
+                    potion_types.append(potion_type)
+                    quantities.append(requested_quantity*-1)
+                    skus.append(item_sku)
+                    costs.append(requested_quantity * row.item_price)
+                    num_potions += requested_quantity
+                    cost += (requested_quantity * row.item_price)
+
+            stmt = sqlalchemy.text("INSERT INTO transactions (potion_type, quantity, gold) VALUES (:a, :b, :c)")
+            result = connection.execute(stmt, {"a": potion_types, "b": quantities, "c": cost})
+
+            result = connection.execute(sqlalchemy.text("SELECT * FROM transactions ORDER BY created_at DESC LIMIT 1"))
             row = result.first()
-            potion_type = row.potion_type
+            transaction_id = row.id
 
-            result = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM potions_ledger_entries WHERE potion_type = :a"), {"a": potion_type})
-            quantity = result.first()[0]
-            if quantity >= requested_quantity:
-                potion_types.append(potion_type)
-                quantities.append(requested_quantity*-1)
-                skus.append(item_sku)
-                costs.append(requested_quantity * row.item_price)
-                num_potions += requested_quantity
-                cost += (requested_quantity * row.item_price)
+            stmt = sqlalchemy.text("INSERT INTO gold_ledger_entries (transaction_id, change) VALUES (:a, :b)")
+            result = connection.execute(stmt, {"a": transaction_id, "b": cost})
 
-        stmt = sqlalchemy.text("INSERT INTO transactions (potion_type, quantity, gold) VALUES (:a, :b, :c)")
-        result = connection.execute(stmt, {"a": potion_types, "b": quantities, "c": cost})
-
-        result = connection.execute(sqlalchemy.text("SELECT * FROM transactions ORDER BY created_at DESC LIMIT 1"))
-        row = result.first()
-        transaction_id = row.id
-
-        stmt = sqlalchemy.text("INSERT INTO gold_ledger_entries (transaction_id, change) VALUES (:a, :b)")
-        result = connection.execute(stmt, {"a": transaction_id, "b": cost})
-
-        for i in range(len(potion_types)):
-            stmt = sqlalchemy.text("INSERT INTO potions_ledger_entries (transaction_id, potion_type, change) VALUES (:a, :b, :c)")
-            result = connection.execute(stmt, {"a": transaction_id, "b": potion_types[i], "c": quantities[i]})
-            stmt = sqlalchemy.text("UPDATE cart_items SET line_item_total = :a WHERE cart_id = :b AND item_sku = :c")
-            result = connection.execute(stmt, {"a": costs[i], "b": cart_id, "c": skus[i]})
+            for i in range(len(potion_types)):
+                stmt = sqlalchemy.text("INSERT INTO potions_ledger_entries (transaction_id, potion_type, change) VALUES (:a, :b, :c)")
+                result = connection.execute(stmt, {"a": transaction_id, "b": potion_types[i], "c": quantities[i]})
+                stmt = sqlalchemy.text("UPDATE cart_items SET line_item_total = :a WHERE cart_id = :b AND item_sku = :c")
+                result = connection.execute(stmt, {"a": costs[i], "b": cart_id, "c": skus[i]})
+    except Exception as ex:
+        raise Exception(ex)
         
 
     return {"total_potions_bought": num_potions, "total_gold_paid": cost}
